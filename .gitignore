@@ -38,6 +38,7 @@ solaris*Gcc*/
 SunOS*Gcc*/
 platforms/
 build/
+*ppl*/
 
 # Source packages - anywhere
 *.tar.bz2

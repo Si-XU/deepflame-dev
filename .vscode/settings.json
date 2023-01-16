@@ -1,0 +1,12 @@
+{
+	"files.associations": {
+		"df0DFoam.C": "cpp",
+		"pcEqn.H": "cpp",
+		"pEqn.H": "cpp",
+		"setRDeltaT.H": "cpp",
+		"rhoEEqn.H": "cpp",
+		"dfChemistryModel.C": "cpp",
+		"makeDfChemistryModels.C": "cpp",
+		"DynamicBuffer.C": "cpp"
+	}
+}

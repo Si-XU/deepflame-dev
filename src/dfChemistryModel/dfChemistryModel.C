@@ -1649,7 +1649,7 @@ Foam::scalar Foam::dfChemistryModel<ThermoType>::solve_DNN(
         // std::cout << "vec2ndarrayTime = " << processingTime8.count() << std::endl;
         time_vec2ndarray_ += processingTime8.count();
 
-        pybind11::module_ call_torch = pybind11::module_::import("inference"); // import python file
+        pybind11::module_ call_torch = pybind11::module_::import("inference_ppl"); // import python file
 
         std::chrono::steady_clock::time_point start9 = std::chrono::steady_clock::now();
 
