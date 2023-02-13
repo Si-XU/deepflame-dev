@@ -9,21 +9,32 @@ import os
 from easydict import EasyDict as edict
 import os
 
+from torch.autograd import Function
+
 torch.set_printoptions(precision=10)
 print('position 0 in inference.py')
 device = torch.device("cpu")
 device_ids = range(torch.cuda.device_count())
 
 
+class GELU(Function):
+    @staticmethod
+    def forward(self, x):
+        return 0.5 * x * (1 + torch.tanh(
+            math.sqrt(2 / 3.1415926536) * (x + 0.044715 * torch.pow(x, 3))))
+    @staticmethod
+    def symbolic(g, input):
+        return g.op("pmx::GELU", input)
 
 class MyGELU(torch.nn.Module):
     def __init__(self):
         super(MyGELU, self).__init__()
         self.torch_PI = 3.1415926536
+        self.func = GELU.apply
 
     def forward(self, x):
-        return 0.5 * x * (1 + torch.tanh(
-            math.sqrt(2 / self.torch_PI) * (x + 0.044715 * torch.pow(x, 3))))
+        x = self.func(x)
+        return x
 
 
 def json2Parser(json_path):

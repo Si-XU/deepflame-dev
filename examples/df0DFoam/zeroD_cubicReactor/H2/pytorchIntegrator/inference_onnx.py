@@ -164,5 +164,8 @@ def inference(vec0, vec1, vec2):
     except Exception as e:
         print(e.args) 
 
-tmp_input = np.random.rand(10,100,24)
-inference(tmp_input, [], [])
+# tmp_input = np.random.rand(100000,10)
+# t = time.perf_counter() 
+# for i in range(1000):
+#     inference(tmp_input, [], [])
+# print(f"Inference time: {time.perf_counter() - t}")

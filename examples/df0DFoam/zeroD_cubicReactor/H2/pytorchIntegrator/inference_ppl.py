@@ -106,8 +106,8 @@ class PPLModel(object):
                 'quick_select' : False,
                 'in_shapes': "10000_9",
                 'onnx_model': model_path,
-                'export_algo_file': False,
-                'import_algo_file': None,
+                'export_algo_file': None,
+                'import_algo_file': "mechanisms/algo.json",
                 'kernel_type': "FLOAT16",
                 'quant_file': None
             }
@@ -242,20 +242,20 @@ try:
     layers = setting0.layers
     
 
-    Xmu0 = np.array(norm0.input_mean)
-    Xstd0 = np.array(norm0.input_std)
-    Ymu0 = np.array(norm0.label_mean)
-    Ystd0 = np.array(norm0.label_std)
+    Xmu0 = torch.tensor(norm0.input_mean).unsqueeze(0).to(device=device)
+    Xstd0 = torch.tensor(norm0.input_std).unsqueeze(0).to(device=device)
+    Ymu0 = torch.tensor(norm0.label_mean).unsqueeze(0).to(device=device)
+    Ystd0 = torch.tensor(norm0.label_std).unsqueeze(0).to(device=device)
 
-    Xmu1 = np.array(norm1.input_mean)
-    Xstd1 = np.array(norm1.input_std)
-    Ymu1 = np.array(norm1.label_mean)
-    Ystd1 = np.array(norm1.label_std)
-    
-    Xmu2 = np.array(norm2.input_mean)
-    Xstd2 = np.array(norm2.input_std)
-    Ymu2 = np.array(norm2.label_mean)
-    Ystd2 = np.array(norm2.label_std)
+    Xmu1 = torch.tensor(norm1.input_mean).unsqueeze(0).to(device=device)
+    Xstd1 = torch.tensor(norm1.input_std).unsqueeze(0).to(device=device)
+    Ymu1 = torch.tensor(norm1.label_mean).unsqueeze(0).to(device=device)
+    Ystd1 = torch.tensor(norm1.label_std).unsqueeze(0).to(device=device)
+
+    Xmu2 = torch.tensor(norm2.input_mean).unsqueeze(0).to(device=device)
+    Xstd2 = torch.tensor(norm2.input_std).unsqueeze(0).to(device=device)
+    Ymu2 = torch.tensor(norm2.label_mean).unsqueeze(0).to(device=device)
+    Ystd2 = torch.tensor(norm2.label_std).unsqueeze(0).to(device=device)
 
     #load model  
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -280,60 +280,75 @@ def inference(vec0, vec1, vec2):
     vec1 = np.reshape(vec1, (-1, 10))
     vec2 = np.reshape(vec2, (-1, 10))
 
-    try:
-        input0_ = np.array(vec0) #cast ndarray to torch tensor
-        input1_ = np.array(vec1) #cast ndarray to torch tensor
-        input2_ = np.array(vec2) #cast ndarray to torch tensor
+    #try:
+    input0_ = torch.from_numpy(vec0).double().to(device=device) #cast ndarray to torch tensor
+    input1_ = torch.from_numpy(vec1).double().to(device=device) #cast ndarray to torch tensor
+    input2_ = torch.from_numpy(vec2).double().to(device=device) #cast ndarray to torch tensor
 
-        # pre_processing
-        rho0 = input0_[:, 0:1]
-        input0_Y = input0_[:, 3:].copy()
-        input0_bct = input0_[:, 1:]
-        input0_bct[:, 2:] = (np.power(input0_bct[:, 2:], lamda) - 1) / lamda #BCT
-        input0_normalized = (input0_bct - Xmu0) / Xstd0
-        # input0_normalized[:, -1] = 0 #set Y_AR to 0
-        input0_normalized = input0_normalized.astype(np.float32)
+    # pre_processing
+    rho0 = input0_[:, 0].unsqueeze(1)
+    input0_Y = input0_[:, 3:].clone()
+    input0_bct = input0_[:, 1:]
+    input0_bct[:, 2:] = (input0_bct[:, 2:]**(lamda) - 1) / lamda #BCT
+    input0_normalized = (input0_bct - Xmu0) / Xstd0
+    # input0_normalized[:, -1] = 0 #set Y_AR to 0
+    input0_normalized = input0_normalized.float()
 
-        rho1 = input1_[:, 0:1]
-        input1_Y = input1_[:, 3:].copy()
-        input1_bct = input1_[:, 1:]
-        input1_bct[:, 2:] = (np.power(input1_bct[:, 2:], lamda) - 1) / lamda #BCT
-        input1_normalized = (input1_bct - Xmu1) / Xstd1
-        # input1_normalized[:, -1] = 0 #set Y_AR to 0
-        input1_normalized = input1_normalized.astype(np.float32)
+    rho1 = input1_[:, 0].unsqueeze(1)
+    input1_Y = input1_[:, 3:].clone()
+    input1_bct = input1_[:, 1:]
+    input1_bct[:, 2:] = (input1_bct[:, 2:]**(lamda) - 1) / lamda #BCT
+    input1_normalized = (input1_bct - Xmu1) / Xstd1
+    # input1_normalized[:, -1] = 0 #set Y_AR to 0
+    input1_normalized = input1_normalized.float()
 
 
-        rho2 = input2_[:, 0:1]
-        input2_Y = input2_[:, 3:].copy()
-        input2_bct = input2_[:, 1:]
-        input2_bct[:, 2:] = (np.power(input2_bct[:, 2:], lamda) - 1) / lamda #BCT
-        input2_normalized = (input2_bct - Xmu2) / Xstd2
-        # input2_normalized[:, -1] = 0 #set Y_AR to 0
-        input2_normalized = input2_normalized.astype(np.float32)
+    rho2 = input2_[:, 0].unsqueeze(1)
+    input2_Y = input2_[:, 3:].clone()
+    input2_bct = input2_[:, 1:]
+    input2_bct[:, 2:] = (input2_bct[:, 2:]**(lamda) - 1) / lamda #BCT
+    input2_normalized = (input2_bct - Xmu2) / Xstd2
+    # input2_normalized[:, -1] = 0 #set Y_AR to 0
+    input2_normalized = input2_normalized.float()
 
-        #inference
-        output0_normalized = model0.forward([input0_normalized])[0]
-        output1_normalized = model1.forward([input1_normalized])[0]
-        output2_normalized = model2.forward([input2_normalized])[0]
+    #inference
+    if len(input0_normalized):
+        input0_normalized = input0_normalized.cpu().numpy()
+        output0_normalized = torch.from_numpy(model0.forward([input0_normalized])[0]).to(device=device)
+    else:
+        output0_normalized = torch.from_numpy(np.empty([0,9])).to(device=device)
+    if len(input1_normalized):
+        input1_normalized = input1_normalized.cpu().numpy()
+        output1_normalized = torch.from_numpy(model1.forward([input1_normalized])[0]).to(device=device)
+    else:
+        output1_normalized = torch.from_numpy(np.empty([0,9])).to(device=device)
+    if len(input2_normalized):
+        input2_normalized = input2_normalized.cpu().numpy()
+        output2_normalized = torch.from_numpy(model2.forward([input2_normalized])[0]).to(device=device)
+    else:
+        output2_normalized = torch.from_numpy(np.empty([0,9])).to(device=device)        
 
-        # post_processing
-        output0_bct = (output0_normalized * Ystd0 + Ymu0) * delta_t + input0_bct
-        output0_Y = (lamda * output0_bct[:, 2:] + 1)**(1 / lamda)
-        output0_Y = output0_Y / np.sum(output0_Y, axis=1, keepdims=True)
-        output0 = (output0_Y - input0_Y) * rho0 / delta_t
+    # post_processing
+    output0_bct = (output0_normalized * Ystd0 + Ymu0) * delta_t + input0_bct
+    output0_Y = (lamda * output0_bct[:, 2:] + 1)**(1 / lamda)
+    output0_Y = output0_Y / torch.sum(input=output0_Y, dim=1, keepdim=True)
+    output0 = (output0_Y - input0_Y) * rho0 / delta_t   
+    output0 = (output0_Y - input0_Y) * rho0 / delta_t
+    output0 = (output0_Y - input0_Y) * rho0 / delta_t   
+    output0 = output0.cpu().numpy()
 
-        output1_bct = (output1_normalized * Ystd1 + Ymu1) * delta_t + input1_bct
-        output1_Y = (lamda * output1_bct[:, 2:] + 1)**(1 / lamda)
-        output1_Y = output1_Y / np.sum(output1_Y, axis=1, keepdims=True)
-        output1 = (output1_Y - input1_Y) * rho1 / delta_t
+    output1_bct = (output1_normalized * Ystd1 + Ymu1) * delta_t + input1_bct
+    output1_Y = (lamda * output1_bct[:, 2:] + 1)**(1 / lamda)
+    output1_Y = output1_Y / torch.sum(input=output1_Y, dim=1, keepdim=True)
+    output1 = (output1_Y - input1_Y) * rho1 / delta_t
+    output1 = output1.cpu().numpy()
 
-        output2_bct = (output2_normalized * Ystd2 + Ymu2) * delta_t + input2_bct
-        output2_Y = (lamda * output2_bct[:, 2:] + 1)**(1 / lamda)
-        output2_Y = output2_Y / np.sum(output2_Y, axis=1, keepdims=True)
-        output2 = (output2_Y - input2_Y) * rho2 / delta_t
+    output2_bct = (output2_normalized * Ystd2 + Ymu2) * delta_t + input2_bct
+    output2_Y = (lamda * output2_bct[:, 2:] + 1)**(1 / lamda)
+    output2_Y = output2_Y / torch.sum(input=output2_Y, dim=1, keepdim=True)
+    output2 = (output2_Y - input2_Y) * rho2 / delta_t
+    output2 = output2.cpu().numpy()
 
-        result = np.append(output0, output1, axis=0)
-        result = np.append(result, output2, axis=0)
-        return result
-    except Exception as e:
-        print(e.args) 
+    result = np.append(output0, output1, axis=0)
+    result = np.append(result, output2, axis=0)
+    return result

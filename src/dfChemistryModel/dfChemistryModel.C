@@ -1500,9 +1500,10 @@ void Foam::dfChemistryModel<ThermoType>::updateSolutionBuffer
     std::vector<std::vector<Foam::label>>& problemCounter
 )
 {
-    std::vector<double> outputsVec0(star, star+outputLength[0] * 21); //the float number is sample_length*sample_number
-    std::vector<double> outputsVec1(star+outputLength[0] * 21, star+outputLength[1] * 21);
-    std::vector<double> outputsVec2(star+outputLength[1] * 21, star+outputLength[2] * 21);
+    int cloumn_size = 7;
+    std::vector<double> outputsVec0(star, star+outputLength[0] * cloumn_size); //the float number is sample_length*sample_number
+    std::vector<double> outputsVec1(star+outputLength[0] * cloumn_size, star+outputLength[1] * cloumn_size);
+    std::vector<double> outputsVec2(star+outputLength[1] * cloumn_size, star+outputLength[2] * cloumn_size);
 
     GpuSolution solution(mixture_.nSpecies());
     DynamicList<GpuSolution> solutionList; //TODO: rename
